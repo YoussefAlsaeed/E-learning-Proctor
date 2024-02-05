@@ -20,6 +20,7 @@ video.addEventListener('play', async () => {
   document.body.append(canvas);
   const displaySize = { width: video.width, height: video.height };
   faceapi.matchDimensions(canvas, displaySize);
+  const model = await cocoSsd.load();
 
   setInterval(async () => {
     const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions();
@@ -27,8 +28,6 @@ video.addEventListener('play', async () => {
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
     faceapi.draw.drawDetections(canvas, resizedDetections);
     faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
-
-    const model = await cocoSsd.load();
 
     const predictions = await model.detect(video);
 
