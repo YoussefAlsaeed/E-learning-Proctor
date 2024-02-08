@@ -18,8 +18,8 @@ Question.belongsTo(Quiz);
 Question.hasMany(Answer); 
 Answer.belongsTo(Question); 
 
-// sequelize.sync({ force: true }) 
-//   .then(() => console.log('Database & tables created!'));
+sequelize.sync({ force: true }) 
+  .then(() => console.log('Database & tables created!'));
 
 module.exports = {
   sequelize,
