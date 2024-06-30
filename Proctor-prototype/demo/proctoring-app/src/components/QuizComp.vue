@@ -1,7 +1,7 @@
 <template>
   <div class="quiz-container">
     <VideoPlayer ref="videoPlayer" class="video-player" />
-    <div class="quiz-content">
+    <div class="quiz-content" :class="{ disabled: !isFullscreen }">
       <h1>{{ quiz.title }}</h1>
       <p v-if="timer > 0">Time remaining: {{ timer }} seconds</p>
       <form @submit.prevent="submitAnswers">
@@ -13,17 +13,24 @@
               :name="`question-${index}`"
               :value="answer.id" 
               v-model="answers[index]"
+              :disabled="!isFullscreen"
             />
             <label>{{ answer.text }}</label>
           </div>
         </div>
-        <button type="submit">Submit</button>
+        <button type="submit" :disabled="!isFullscreen">Submit</button>
       </form>
+    </div>
+
+    <!-- Fullscreen Popup -->
+    <div v-if="showFullscreenPopup" class="fullscreen-popup">
+      <p>To take the exam, you must be in fullscreen mode.</p>
+      <button @click="enterFullscreen">OK</button>
     </div>
 
     <!-- Result Popup -->
     <div v-if="showResultPopup" class="result-popup">
-      <p>Your grade : {{ result.grade }} / {{ result.totalQuestions }}</p>
+      <p>Your grade: {{ result.grade }} / {{ result.totalQuestions }}</p>
       <button @click="closeResultPopup">Close</button>
     </div>
   </div>
@@ -42,6 +49,8 @@ export default {
       answers: [],
       timer: 0,
       showResultPopup: false,
+      showFullscreenPopup: true,
+      isFullscreen: false,
       result: {
         grade: 0,
         correctAnswers: 0,
@@ -115,6 +124,30 @@ export default {
       }, 1000);
     },
 
+    enterFullscreen() {
+      const elem = document.documentElement;
+      const onFullscreenChange = () => {
+        this.isFullscreen = !!document.fullscreenElement;
+        if (!this.isFullscreen) {
+          this.$router.push('/student');
+        }
+      };
+
+      document.addEventListener('fullscreenchange', onFullscreenChange);
+
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.mozRequestFullScreen) {
+        elem.mozRequestFullScreen();
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+      }
+
+      this.showFullscreenPopup = false;
+    },
+
     openResultPopup() {
       this.showResultPopup = true;
     },
@@ -167,8 +200,26 @@ button {
   transition: background-color 0.3s;
 }
 
-button:hover {
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+button:hover:enabled {
   background-color: #2980b9;
+}
+
+.fullscreen-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  z-index: 2;
 }
 
 .result-popup {
@@ -187,5 +238,10 @@ button:hover {
 .result-popup p {
   font-size: 16px;
   margin-bottom: 10px;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.5;
 }
 </style>
