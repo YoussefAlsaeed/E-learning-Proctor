@@ -11,6 +11,8 @@ import { onMounted, onBeforeUnmount, ref } from 'vue';
 import io from 'socket.io-client';
 import * as faceapi from '@vladmandic/face-api';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
+import dayjs from 'dayjs';
+
 
 export default {
   name: 'VideoPlayer',
@@ -55,7 +57,7 @@ export default {
 
               // Send frame every 5 seconds
               const currentTime = Date.now();
-              if (currentTime - lastFrameTime >= 5000) {
+              if (currentTime - lastFrameTime >= 2000) {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(videoEl.value, 0, 0, canvas.width, canvas.height);
                 const imageData = canvas.toDataURL('image/jpeg', 0.8);
@@ -85,7 +87,7 @@ export default {
                     ctx.fillText('Phone detected!', prediction.bbox[0], prediction.bbox[1] > 10 ? prediction.bbox[1] - 5 : 10);
                     alert('PUT DOWN YOUR PHONE CHEATER');
                   }
-                });             
+                });
               } else {
                 console.error('Video element is not available');
               }
@@ -116,22 +118,51 @@ export default {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
 
+
     const handleSocket = () => {
       socket = io('http://localhost:5000'); // Replace with your Flask server URL
 
-      socket.on('response_back', (data) => {
+      socket.on('response_back', async (data) => {
         // Display text describing face pose
         displayText.value = data.text;
 
         // Save the image on the client side only if not "Forward"
         if (data.text !== 'Forward') {
-          const link = document.createElement('a');
-          link.href = data.image;
-          link.download = `processed_image_${Date.now()}.jpg`;
-          link.click();
+          const formattedDate = dayjs().format('YYYY-MM-DD_HH-mm-ss');
+
+          // Create a Blob from the data URL
+          const blob = await (await fetch(data.image)).blob();
+          const file = new File([blob], `processedimage_${formattedDate}.jpg`, { type: 'image/jpeg' });
+
+          // Create FormData object
+          const formData = new FormData();
+          formData.append('studentId', 2); // Replace with the actual student ID
+          formData.append('quizId', 12); // Replace with the actual quiz ID
+          formData.append('file', file);
+
+          try {
+            const response = await fetch('http://localhost:8080/cheating-report/save-photo', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzYXJhaEBnbWFpbC5jb20iLCJpYXQiOjE3MTk5OTE4NDUsImV4cCI6MTcxOTk5OTA0NX0.qsnGwnzkfP27BBYbz5QtYL2piqwqUtp6ErxCvM2vXn8`, // Replace with the actual JWT token
+              },
+              body: formData,
+            });
+
+            if (response.ok) {
+              console.log('Photo saved successfully');
+            } else {
+              const errorText = await response.text();
+              console.error('Failed to save photo:', errorText);
+            }
+          } catch (error) {
+            console.error('Error while saving photo:', error);
+          }
         }
       });
     };
+
+
 
     onMounted(() => {
       startDetection();

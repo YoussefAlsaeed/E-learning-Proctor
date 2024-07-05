@@ -1,7 +1,7 @@
 <template>
   <div class="quiz-container">
     <VideoPlayer ref="videoPlayer" class="video-player" />
-    <div class="quiz-content" :class="{ disabled: !isFullscreen }">
+    <div class="quiz-content">
       <h1>{{ quiz.title }}</h1>
       <p v-if="timer > 0">Time remaining: {{ timer }} seconds</p>
       <form @submit.prevent="submitAnswers">
@@ -18,15 +18,15 @@
             <label>{{ answer.text }}</label>
           </div>
         </div>
-        <button type="submit" :disabled="!isFullscreen">Submit</button>
+        <button type="submit">Submit</button>
       </form>
     </div>
 
     <!-- Fullscreen Popup -->
-    <div v-if="showFullscreenPopup" class="fullscreen-popup">
+    <!-- <div v-if="showFullscreenPopup" class="fullscreen-popup">
       <p>To take the exam, you must be in fullscreen mode.</p>
       <button @click="enterFullscreen">OK</button>
-    </div>
+    </div> -->
 
     <!-- Result Popup -->
     <div v-if="showResultPopup" class="result-popup">
@@ -124,29 +124,29 @@ export default {
       }, 1000);
     },
 
-    enterFullscreen() {
-      const elem = document.documentElement;
-      const onFullscreenChange = () => {
-        this.isFullscreen = !!document.fullscreenElement;
-        if (!this.isFullscreen) {
-          this.$router.push('/student');
-        }
-      };
+    // enterFullscreen() {
+    //   const elem = document.documentElement;
+    //   const onFullscreenChange = () => {
+    //     this.isFullscreen = !!document.fullscreenElement;
+    //     if (!this.isFullscreen) {
+    //       this.$router.push('/student');
+    //     }
+    //   };
 
-      document.addEventListener('fullscreenchange', onFullscreenChange);
+    //   document.addEventListener('fullscreenchange', onFullscreenChange);
 
-      if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-      } else if (elem.mozRequestFullScreen) {
-        elem.mozRequestFullScreen();
-      } else if (elem.webkitRequestFullscreen) {
-        elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) {
-        elem.msRequestFullscreen();
-      }
+    //   if (elem.requestFullscreen) {
+    //     elem.requestFullscreen();
+    //   } else if (elem.mozRequestFullScreen) {
+    //     elem.mozRequestFullScreen();
+    //   } else if (elem.webkitRequestFullscreen) {
+    //     elem.webkitRequestFullscreen();
+    //   } else if (elem.msRequestFullscreen) {
+    //     elem.msRequestFullscreen();
+    //   }
 
-      this.showFullscreenPopup = false;
-    },
+    //   this.showFullscreenPopup = false;
+    // },
 
     openResultPopup() {
       this.showResultPopup = true;
