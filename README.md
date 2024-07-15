@@ -36,6 +36,7 @@ This project is a demo application consisting of a Node.js Express backend and a
 ## Project Structure
 
 ```
+Proctor-prototype
 ├── backend
 │ ├── node_modules
 │ ├── package.json
